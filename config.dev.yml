@@ -1,0 +1,13 @@
+domains:
+  api: http://localhost:9000
+  app: http://localhost:8080
+
+db:
+  host: localhost
+  database: spotimoods
+  user: root
+  pass: dev
+  verbose: true
+
+web:
+  port: 9000

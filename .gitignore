@@ -1,0 +1,6 @@
+# IDE
+.idea/
+.vscode/
+
+# Configs/env
+config.yml
