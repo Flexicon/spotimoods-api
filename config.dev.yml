@@ -1,6 +1,6 @@
 domains:
   api: http://localhost:9000
-  app: http://localhost:8080
+  front: http://localhost:8080
 
 db:
   host: localhost
@@ -11,3 +11,6 @@ db:
 
 web:
   port: 9000
+
+app:
+  secret: secret123

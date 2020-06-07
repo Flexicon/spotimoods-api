@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -73,11 +72,18 @@ func (h *loginController) loginCallback() echo.HandlerFunc {
 		defer resp.Body.Close()
 
 		type spotifyTokenResponse struct {
-			AccessToken  string `json:"access_token"`
-			RefreshToken string `json:"refresh_token"`
+			AccessToken      string `json:"access_token"`
+			RefreshToken     string `json:"refresh_token"`
+			ExpiresIn        int    `json:"expires_in"`
+			Error            string `json:"error"`
+			ErrorDescription string `json:"error_description"`
 		}
 		var tokenResp spotifyTokenResponse
 		json.NewDecoder(resp.Body).Decode(&tokenResp)
+
+		if tokenResp.Error != "" {
+			return c.String(http.StatusInternalServerError, fmt.Sprintln("Failed to login:", tokenResp.ErrorDescription))
+		}
 
 		req, _ = http.NewRequest(http.MethodGet, "https://api.spotify.com/v1/me", nil)
 		req.Header.Set("Authorization", "Bearer "+tokenResp.AccessToken)
@@ -107,7 +113,6 @@ func (h *loginController) loginCallback() echo.HandlerFunc {
 		if err != nil {
 			return c.String(http.StatusInternalServerError, fmt.Sprintln("Error parsing user info:", err))
 		}
-		log.Printf("\n\n%+v\n\n", profile)
 
 		signedToken, err := generateToken(TokenOptions{
 			DisplayName: profile.DisplayName,
@@ -122,13 +127,7 @@ func (h *loginController) loginCallback() echo.HandlerFunc {
 			image = profile.Images[0].URL
 		}
 
-		err = h.services.User().UpsertUser(
-			profile.DisplayName,
-			profile.Email,
-			image,
-			tokenResp.AccessToken,
-			tokenResp.RefreshToken,
-		)
+		err = h.services.User().UpsertUser(profile.DisplayName, profile.Email, image, tokenResp.AccessToken, tokenResp.RefreshToken)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, fmt.Sprintln("Failed to register user:", err))
 		}

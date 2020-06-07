@@ -25,13 +25,17 @@ func (r *UserRepository) Save(user *internal.User) error {
 	return r.db.Save(&user).Error
 }
 
-// SaveTokenForUser persists a new token for a given user
+// SaveTokenForUser persists a new token or updets it for a given user
 func (r *UserRepository) SaveTokenForUser(user *internal.User, token, refresh string) error {
-	spotToken := &internal.SpotifyToken{
-		Token:   token,
-		Refresh: refresh,
-		User:    *user,
-	}
+	var spotToken internal.SpotifyToken
+	r.db.Where("user_id = ?", user.ID).First(&spotToken)
 
-	return r.db.Create(&spotToken).Error
+	spotToken.Token = token
+	spotToken.Refresh = refresh
+	spotToken.User = *user
+
+	if r.db.NewRecord(spotToken) {
+		return r.db.Create(&spotToken).Error
+	}
+	return r.db.Save(&spotToken).Error
 }

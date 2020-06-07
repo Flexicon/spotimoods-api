@@ -21,7 +21,7 @@ func newAuth(services *internal.ServiceProvider) Controller {
 }
 
 func (h *authController) Routes(g *echo.Group) {
-	g = g.Group("/auth", middleware.JWT([]byte(viper.GetString("app.secret"))), authUser(Options{Services: h.services}))
+	g = g.Group("/auth", authMiddlewareChain(Options{Services: h.services})...)
 
 	g.GET("/refresh", h.Refresh())
 }
@@ -58,9 +58,16 @@ func generateToken(opts TokenOptions) (string, error) {
 	claims := token.Claims.(jwt.MapClaims)
 	claims["display_name"] = opts.DisplayName
 	claims["email"] = opts.Email
-	claims["exp"] = time.Now().Add(time.Minute * 15).Unix()
+	claims["exp"] = time.Now().Add(time.Hour * 12).Unix()
 
 	return token.SignedString([]byte(viper.GetString("app.secret")))
+}
+
+func authMiddlewareChain(opts Options) []echo.MiddlewareFunc {
+	return []echo.MiddlewareFunc{
+		middleware.JWT([]byte(viper.GetString("app.secret"))),
+		authUser(opts),
+	}
 }
 
 // authUser middleware to verify an existing user for a token

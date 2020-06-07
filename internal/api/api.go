@@ -22,11 +22,6 @@ func InitRoutes(e *echo.Echo, opts Options) {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.Secure())
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"*"},
-		AllowHeaders: []string{},
-		AllowMethods: []string{echo.GET},
-	}))
 
 	base := e.Group("")
 	newLogin(opts.Services).Routes(base)
