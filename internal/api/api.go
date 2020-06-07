@@ -20,7 +20,7 @@ type Options struct {
 func InitRoutes(e *echo.Echo, opts Options) {
 	e.Use(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{DisableStackAll: true}))
 	e.Use(middleware.Secure())
 
 	base := e.Group("")
@@ -29,4 +29,5 @@ func InitRoutes(e *echo.Echo, opts Options) {
 	api := e.Group("/api")
 	newPing().Routes(api)
 	newAuth(opts.Services).Routes(api)
+	newUser(opts.Services).Routes(api)
 }

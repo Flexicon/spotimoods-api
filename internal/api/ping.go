@@ -16,13 +16,11 @@ func newPing() Controller {
 func (c *pingController) Routes(g *echo.Group) {
 	g.GET("/ping", func(c echo.Context) error {
 		type response struct {
-			Pong int64  `json:"pong"`
-			Msg  string `json:"msg,omitempty"`
+			Pong int64 `json:"pong"`
 		}
 
 		return c.JSON(http.StatusOK, response{
 			Pong: time.Now().Unix(),
-			Msg:  c.QueryParam("msg"),
 		})
 	})
 }

@@ -17,6 +17,14 @@ func (r *UserRepository) FindByEmail(email string) (*internal.User, error) {
 	return &user, err
 }
 
+// FindTokenByUser attempts to retrieve a SpotifyToken for the given user
+func (r *UserRepository) FindTokenByUser(user *internal.User) (*internal.SpotifyToken, error) {
+	var token internal.SpotifyToken
+	err := r.db.Where("user_id = ?", user.ID).First(&token).Error
+
+	return &token, err
+}
+
 // Save upserts the given user into the DB
 func (r *UserRepository) Save(user *internal.User) error {
 	if r.db.NewRecord(user) {

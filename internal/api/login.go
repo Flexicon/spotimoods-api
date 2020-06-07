@@ -85,31 +85,7 @@ func (h *loginController) loginCallback() echo.HandlerFunc {
 			return c.String(http.StatusInternalServerError, fmt.Sprintln("Failed to login:", tokenResp.ErrorDescription))
 		}
 
-		req, _ = http.NewRequest(http.MethodGet, "https://api.spotify.com/v1/me", nil)
-		req.Header.Set("Authorization", "Bearer "+tokenResp.AccessToken)
-
-		resp, err = client.Do(req)
-		if err != nil {
-			return c.String(http.StatusInternalServerError, fmt.Sprintln("Error fetching user info:", err.Error()))
-		}
-		defer resp.Body.Close()
-
-		type spotifyProfileResponse struct {
-			DisplayName string `json:"display_name"`
-			Email       string `json:"email"`
-			ID          string `json:"id"`
-			URI         string `json:"uri"`
-
-			ExternalURLs struct {
-				Spotify string `json:"spotify"`
-			} `json:"external_urls"`
-
-			Images []struct {
-				URL string `json:"url"`
-			} `json:"images"`
-		}
-		var profile spotifyProfileResponse
-		json.NewDecoder(resp.Body).Decode(&profile)
+		profile, err := h.services.Spotify().GetMyProfile(tokenResp.AccessToken)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, fmt.Sprintln("Error parsing user info:", err))
 		}
