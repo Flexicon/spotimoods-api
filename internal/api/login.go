@@ -87,7 +87,7 @@ func (h *loginController) loginCallback() echo.HandlerFunc {
 
 		profile, err := h.services.Spotify().GetMyProfile(tokenResp.AccessToken)
 		if err != nil {
-			return c.String(http.StatusInternalServerError, fmt.Sprintln("Error parsing user info:", err))
+			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
 		signedToken, err := generateToken(TokenOptions{
