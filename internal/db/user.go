@@ -13,16 +13,23 @@ type UserRepository struct {
 // FindByEmail checks for an existing active user by a given email
 func (r *UserRepository) FindByEmail(email string) (*internal.User, error) {
 	var user internal.User
-	err := r.db.Where("email = ?", email).First(&user).Error
-	return &user, err
+	query := r.db.Where("email = ?", email).First(&user)
+	if query.RecordNotFound() {
+		return nil, internal.ErrNotFound
+	}
+
+	return &user, query.Error
 }
 
 // FindTokenByUser attempts to retrieve a SpotifyToken for the given user
 func (r *UserRepository) FindTokenByUser(user *internal.User) (*internal.SpotifyToken, error) {
 	var token internal.SpotifyToken
-	err := r.db.Where("user_id = ?", user.ID).First(&token).Error
+	query := r.db.Where("user_id = ?", user.ID).First(&token)
+	if query.RecordNotFound() {
+		return nil, internal.ErrNotFound
+	}
 
-	return &token, err
+	return &token, query.Error
 }
 
 // Save upserts the given user into the DB

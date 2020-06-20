@@ -78,14 +78,14 @@ func (h *loginController) loginCallback() echo.HandlerFunc {
 			Error            string `json:"error"`
 			ErrorDescription string `json:"error_description"`
 		}
-		var tokenResp spotifyTokenResponse
-		json.NewDecoder(resp.Body).Decode(&tokenResp)
+		var token spotifyTokenResponse
+		json.NewDecoder(resp.Body).Decode(&token)
 
-		if tokenResp.Error != "" {
-			return c.String(http.StatusInternalServerError, fmt.Sprintln("Failed to login:", tokenResp.ErrorDescription))
+		if token.Error != "" {
+			return c.String(http.StatusInternalServerError, fmt.Sprintln("Failed to login:", token.ErrorDescription))
 		}
 
-		profile, err := h.services.Spotify().GetMyProfile(tokenResp.AccessToken)
+		profile, err := h.services.Spotify().GetMyProfile(token.AccessToken)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
@@ -103,7 +103,7 @@ func (h *loginController) loginCallback() echo.HandlerFunc {
 			image = profile.Images[0].URL
 		}
 
-		err = h.services.User().UpsertUser(profile.DisplayName, profile.Email, image, tokenResp.AccessToken, tokenResp.RefreshToken)
+		_, err = h.services.User().UpsertUser(profile.ID, profile.DisplayName, profile.Email, image, token.AccessToken, token.RefreshToken)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, fmt.Sprintln("Failed to register user:", err))
 		}

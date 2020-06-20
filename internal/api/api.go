@@ -18,7 +18,6 @@ type Options struct {
 
 // InitRoutes setup router, middleware and mounts all controllers
 func InitRoutes(e *echo.Echo, opts Options) {
-	e.Use(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Logger())
 	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{DisableStackAll: true}))
 	e.Use(middleware.Secure())
@@ -29,4 +28,5 @@ func InitRoutes(e *echo.Echo, opts Options) {
 	api := e.Group("/api")
 	newPing().Routes(api)
 	newUser(opts.Services).Routes(api)
+	newMood(opts.Services).Routes(api)
 }

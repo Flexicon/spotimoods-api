@@ -29,7 +29,7 @@ func (c *Client) GetAuthorizeURL(state string) string {
 
 	q := url.Values{}
 	q.Add("response_type", "code")
-	q.Add("scope", "user-read-email user-top-read user-read-currently-playing user-read-recently-played")
+	q.Add("scope", "user-read-email user-top-read user-read-currently-playing user-read-recently-played playlist-modify-public")
 	q.Add("client_id", clientID)
 	q.Add("state", state)
 

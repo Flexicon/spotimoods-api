@@ -12,6 +12,7 @@ type HTTPClient interface {
 // RepositoryProvider manages all repositories
 type RepositoryProvider interface {
 	User() UserRepository
+	Mood() MoodRepository
 }
 
 // ServiceProvider manages all services
@@ -36,4 +37,9 @@ func (p *ServiceProvider) User() *UserService {
 // Spotify returns a new Spotify client
 func (p *ServiceProvider) Spotify() SpotifyClient {
 	return p.spotify
+}
+
+// Mood returns a new Mood service
+func (p *ServiceProvider) Mood() *MoodService {
+	return NewMoodService(p.repos.Mood())
 }

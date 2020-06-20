@@ -19,3 +19,8 @@ func NewRepositoryProvider(db *gorm.DB) internal.RepositoryProvider {
 func (p *RepositoryProvider) User() internal.UserRepository {
 	return &UserRepository{db: p.db}
 }
+
+// Mood returns a new MoodRepository
+func (p *RepositoryProvider) Mood() internal.MoodRepository {
+	return &MoodRepository{db: p.db}
+}

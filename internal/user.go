@@ -10,6 +10,7 @@ type User struct {
 	Email       string `gorm:"unique;not null"`
 	DisplayName string
 	Image       string
+	SpotifyID   string `gorm:"not null"`
 }
 
 // UserRepository for interacting with user data
@@ -43,24 +44,25 @@ func (s *UserService) FindByEmail(email string) (*User, error) {
 
 // UpsertUser either updates or sets up a user with the given data and persists them
 // User is identified by email
-func (s *UserService) UpsertUser(name, email, image, token, refresh string) error {
+func (s *UserService) UpsertUser(id, name, email, image, token, refresh string) (*User, error) {
 	user, err := s.FindByEmail(email)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if user == nil {
-		user = &User{
-			DisplayName: name,
-			Email:       email,
-			Image:       image,
-		}
+		user = &User{}
 	}
+
+	user.DisplayName = name
+	user.Email = email
+	user.Image = image
+	user.SpotifyID = id
 
 	if err := s.r.Save(user); err != nil {
-		return err
+		return nil, err
 	}
 
-	return s.r.SaveTokenForUser(user, token, refresh)
+	return user, s.r.SaveTokenForUser(user, token, refresh)
 }
 
 // FindTokenForUser finds a stored spotify OAuth token for the given user

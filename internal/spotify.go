@@ -9,7 +9,7 @@ type SpotifyToken struct {
 	UpdatedAt time.Time
 	Token     string `gorm:"unique;not null"`
 	Refresh   string `gorm:"unique;not null"`
-	UserID    int
+	UserID    uint
 	User      User
 }
 
