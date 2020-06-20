@@ -11,7 +11,7 @@ type Controller interface {
 	Routes(g *echo.Group)
 }
 
-// Options for InitRoutes.
+// Options for API routes
 type Options struct {
 	Services *internal.ServiceProvider
 }
@@ -28,6 +28,5 @@ func InitRoutes(e *echo.Echo, opts Options) {
 
 	api := e.Group("/api")
 	newPing().Routes(api)
-	newAuth(opts.Services).Routes(api)
 	newUser(opts.Services).Routes(api)
 }

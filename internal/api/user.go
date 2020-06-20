@@ -19,7 +19,9 @@ func newUser(services *internal.ServiceProvider) Controller {
 }
 
 func (h *userController) Routes(g *echo.Group) {
-	g = g.Group("", authMiddlewareChain(Options{Services: h.services})...)
+	g = g.Group("")
+	useAuthMiddleware(g, Options{Services: h.services})
+
 	g.GET("/me", h.Me())
 }
 
