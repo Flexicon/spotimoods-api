@@ -12,5 +12,10 @@ db:
 web:
   port: 9000
 
+spotify:
+  client_id: ""
+  client_secret: ""
+  scope: "user-read-email user-top-read user-read-currently-playing user-read-recently-played playlist-modify-public"
+
 app:
   secret: secret123

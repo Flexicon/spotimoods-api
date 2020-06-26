@@ -1,3 +1,0 @@
-domains:
-  api: http://localhost:9000 # TODO: set this to proper domains
-  front: http://localhost:8080
