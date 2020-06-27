@@ -85,7 +85,7 @@ func (h *loginController) loginCallback() echo.HandlerFunc {
 			return c.String(http.StatusInternalServerError, fmt.Sprintln("Failed to login:", token.ErrorDescription))
 		}
 
-		profile, err := h.services.Spotify().GetMyProfile(token.AccessToken)
+		profile, err := h.services.Spotify().GetMyProfile(&internal.SpotifyToken{Token: token.AccessToken})
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}

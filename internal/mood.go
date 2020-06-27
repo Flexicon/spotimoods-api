@@ -6,14 +6,14 @@ import (
 
 // Mood represents a Mood entity
 type Mood struct {
-	ID         uint `gorm:"primary_key"`
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-	Name       string `gorm:"not null" json:"name"`
-	Color      string `gorm:"not null" json:"color"`
-	PlaylistID string `json:"-"`
-	UserID     uint   `json:"-"`
-	User       User   `json:"-"`
+	ID         uint      `gorm:"primary_key" json:"id"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+	Name       string    `gorm:"not null" json:"name"`
+	Color      string    `gorm:"not null" json:"color"`
+	PlaylistID string    `json:"playlist_id"`
+	UserID     uint      `json:"-"`
+	User       User      `json:"-"`
 }
 
 // MoodRepository for interacting with mood data
@@ -28,6 +28,8 @@ type MoodRepository interface {
 	FindByUser(user *User) ([]*Mood, error)
 	// Save upserts the given mood into the DB
 	Save(mood *Mood) error
+	// Update persists the given changeset to the given mood
+	Update(mood *Mood, changes Mood) error
 }
 
 // MoodService for performing all operations related to moods
@@ -52,6 +54,21 @@ func (s *MoodService) AddMood(name, color string, user *User) (*Mood, error) {
 	// TODO: Either create a playlist or kickoff a background worker to do it
 
 	return mood, s.r.Save(mood)
+}
+
+// UpdateMoodForUser for a given change set
+func (s *MoodService) UpdateMoodForUser(id uint, changes Mood, user *User) (*Mood, error) {
+	mood, err := s.FindForUser(id, user)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.r.Update(mood, changes); err != nil {
+		return nil, err
+	}
+	// TODO: Either update the playlist name or kickoff a background worker to do it
+
+	return mood, nil
 }
 
 // GetMoods finds all moods for a given user

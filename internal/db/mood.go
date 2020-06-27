@@ -57,3 +57,13 @@ func (r *MoodRepository) FindByUser(user *internal.User) ([]*internal.Mood, erro
 
 	return moods, err
 }
+
+// Update persists the given changeset to the given mood
+func (r *MoodRepository) Update(mood *internal.Mood, changes internal.Mood) error {
+	query := r.db.Model(&mood).Update(changes)
+	if query.RecordNotFound() {
+		return internal.ErrNotFound
+	}
+
+	return query.Error
+}

@@ -46,7 +46,7 @@ func (s *UserService) FindByEmail(email string) (*User, error) {
 // User is identified by email
 func (s *UserService) UpsertUser(id, name, email, image, token, refresh string) (*User, error) {
 	user, err := s.FindByEmail(email)
-	if err != nil {
+	if err != nil && err != ErrNotFound {
 		return nil, err
 	}
 	if user == nil {

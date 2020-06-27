@@ -26,22 +26,18 @@ func (h *userController) Routes(g *echo.Group) {
 }
 
 func (h *userController) Me() echo.HandlerFunc {
-	type errResponse struct {
-		Msg string `json:"message"`
-	}
-
 	return func(c echo.Context) error {
 		user := c.Get("user").(*internal.User)
 		token, err := h.services.User().FindTokenForUser(user)
 		if err != nil {
 			log.Printf("Couldn't find token for the current user (ID: %d): %v", user.ID, err)
-			return c.JSON(http.StatusInternalServerError, errResponse{Msg: "Couldn't find token for the current user"})
+			return c.JSON(http.StatusInternalServerError, ErrResponse{Msg: "Couldn't find token for the current user"})
 		}
 
-		profile, err := h.services.Spotify().GetMyProfile(token.Token)
+		profile, err := h.services.Spotify().GetMyProfile(token)
 		if err != nil {
 			log.Println("Failed to retrieve user profile:", err)
-			return c.JSON(http.StatusInternalServerError, errResponse{Msg: "Failed to retrieve user profile"})
+			return c.JSON(http.StatusInternalServerError, ErrResponse{Msg: "Failed to retrieve user profile"})
 		}
 
 		return c.JSON(http.StatusOK, profile)

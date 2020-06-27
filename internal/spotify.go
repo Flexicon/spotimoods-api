@@ -38,5 +38,5 @@ type SpotifyClient interface {
 	// GetAuthorizeURL prepares a url to begin the OAuth process with Spotify
 	GetAuthorizeURL(state string) string
 	// GetMyProfile fetches the user profile for the currently logged in user
-	GetMyProfile(token string) (*SpotifyProfile, error)
+	GetMyProfile(token *SpotifyToken) (*SpotifyProfile, error)
 }

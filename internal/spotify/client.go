@@ -25,24 +25,26 @@ func NewClient(h internal.HTTPClient) *Client {
 // GetAuthorizeURL prepares a url to begin the OAuth process with Spotify
 func (c *Client) GetAuthorizeURL(state string) string {
 	clientID := viper.GetString("spotify.client_id")
+	scope := viper.GetString("spotify.scope")
 	apiDomain := viper.GetString("domains.api")
 
 	q := url.Values{}
 	q.Add("response_type", "code")
-	q.Add("scope", "user-read-email user-top-read user-read-currently-playing user-read-recently-played playlist-modify-public")
+	q.Add("scope", scope)
 	q.Add("client_id", clientID)
 	q.Add("state", state)
+	q.Add("redirect_uri", fmt.Sprintf("%s/callback", apiDomain))
 
-	redirectURI := fmt.Sprintf("%s/callback", apiDomain)
-	authorizeURL := fmt.Sprintf("https://accounts.spotify.com/authorize?redirect_uri=%s&%s", redirectURI, q.Encode())
+	url, _ := url.Parse("https://accounts.spotify.com/authorize")
+	url.RawQuery = q.Encode()
 
-	return authorizeURL
+	return url.String()
 }
 
 // GetMyProfile fetches the user profile for the currently logged in user
-func (c *Client) GetMyProfile(token string) (*internal.SpotifyProfile, error) {
+func (c *Client) GetMyProfile(token *internal.SpotifyToken) (*internal.SpotifyProfile, error) {
 	req, _ := http.NewRequest(http.MethodGet, "https://api.spotify.com/v1/me", nil)
-	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Authorization", "Bearer "+token.Token)
 
 	resp, err := c.http.Do(req)
 	if err != nil {
