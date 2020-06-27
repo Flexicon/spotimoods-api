@@ -1,13 +1,9 @@
 package api
 
 import (
-	"bytes"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
-	"net/url"
-	"time"
 
 	"github.com/flexicon/spotimoods-go/internal"
 	"github.com/labstack/echo/v4"
@@ -37,50 +33,21 @@ func (h *loginController) login() echo.HandlerFunc {
 }
 
 func (h *loginController) loginCallback() echo.HandlerFunc {
-	// TODO: replace with calls to SpotifyClient
-	client := &http.Client{Timeout: 5 * time.Second}
-
 	return func(c echo.Context) error {
 		q := c.QueryParams()
 		code := q.Get("code")
 		state := q.Get("state")
-		clientID := viper.GetString("spotify.client_id")
-		clientSecret := viper.GetString("spotify.client_secret")
-		apiDomain := viper.GetString("domains.api")
 
 		// TODO: comapre with state stored in cookie/cache
 		if code == "" || state == "" || state != "123" {
 			return c.String(http.StatusBadRequest, "State mismatch")
 		}
 
-		form := url.Values{}
-		form.Set("code", code)
-		form.Set("grant_type", "authorization_code")
-		form.Set("redirect_uri", fmt.Sprintf("%s/callback", apiDomain))
-
-		tokenURL := "https://accounts.spotify.com/api/token"
-		req, _ := http.NewRequest(http.MethodPost, tokenURL, bytes.NewBuffer([]byte(form.Encode())))
-
-		authorizationToken := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", clientID, clientSecret)))
-		req.Header.Set("Authorization", "Basic "+authorizationToken)
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-		resp, err := client.Do(req)
+		token, err := h.services.Spotify().AuthorizeByCode(code)
 		if err != nil {
-			return c.String(http.StatusInternalServerError, fmt.Sprintln("Error authorizing token:", err.Error()))
+			log.Printf("failed to authorize with spotify: %v", err)
+			return c.String(http.StatusInternalServerError, "Failed to authorize with spotify")
 		}
-		defer resp.Body.Close()
-
-		type spotifyTokenResponse struct {
-			AccessToken      string `json:"access_token"`
-			RefreshToken     string `json:"refresh_token"`
-			ExpiresIn        int    `json:"expires_in"`
-			Error            string `json:"error"`
-			ErrorDescription string `json:"error_description"`
-		}
-		var token spotifyTokenResponse
-		json.NewDecoder(resp.Body).Decode(&token)
-
 		if token.Error != "" {
 			return c.String(http.StatusInternalServerError, fmt.Sprintln("Failed to login:", token.ErrorDescription))
 		}
@@ -109,6 +76,6 @@ func (h *loginController) loginCallback() echo.HandlerFunc {
 		}
 
 		// TODO: redirect to app
-		return c.Redirect(http.StatusFound, fmt.Sprintf("%s/api/ping?msg=%s", apiDomain, signedToken))
+		return c.Redirect(http.StatusFound, fmt.Sprintf("%s/api/ping?msg=%s", viper.GetString("domains.api"), signedToken))
 	}
 }

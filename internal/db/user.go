@@ -24,7 +24,7 @@ func (r *UserRepository) FindByEmail(email string) (*internal.User, error) {
 // FindTokenByUser attempts to retrieve a SpotifyToken for the given user
 func (r *UserRepository) FindTokenByUser(user *internal.User) (*internal.SpotifyToken, error) {
 	var token internal.SpotifyToken
-	query := r.db.Where("user_id = ?", user.ID).First(&token)
+	query := r.db.Preload("User").Where("user_id = ?", user.ID).First(&token)
 	if query.RecordNotFound() {
 		return nil, internal.ErrNotFound
 	}
@@ -40,14 +40,16 @@ func (r *UserRepository) Save(user *internal.User) error {
 	return r.db.Save(&user).Error
 }
 
-// SaveTokenForUser persists a new token or updets it for a given user
+// SaveTokenForUser persists a new token or updates it for a given user
 func (r *UserRepository) SaveTokenForUser(user *internal.User, token, refresh string) error {
 	var spotToken internal.SpotifyToken
 	r.db.Where("user_id = ?", user.ID).First(&spotToken)
 
 	spotToken.Token = token
-	spotToken.Refresh = refresh
-	spotToken.User = *user
+	spotToken.UserID = user.ID
+	if refresh != "" {
+		spotToken.Refresh = refresh
+	}
 
 	if r.db.NewRecord(spotToken) {
 		return r.db.Create(&spotToken).Error

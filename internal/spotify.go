@@ -33,10 +33,31 @@ type SpotifyProfile struct {
 	} `json:"images"`
 }
 
+// SpotifyTokenResponse retrieved from authorizing with the API
+type SpotifyTokenResponse struct {
+	AccessToken      string `json:"access_token"`
+	RefreshToken     string `json:"refresh_token"`
+	ExpiresIn        int    `json:"expires_in"`
+	Error            string `json:"error"`
+	ErrorDescription string `json:"error_description"`
+}
+
+// CreatePlaylistResponse from the spotify API
+//
+// Docs: https://developer.spotify.com/documentation/web-api/reference/playlists/create-playlist/
+type CreatePlaylistResponse struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 // SpotifyClient for all comunication with Spotify and it's API
 type SpotifyClient interface {
 	// GetAuthorizeURL prepares a url to begin the OAuth process with Spotify
 	GetAuthorizeURL(state string) string
 	// GetMyProfile fetches the user profile for the currently logged in user
 	GetMyProfile(token *SpotifyToken) (*SpotifyProfile, error)
+	// AuthorizeByCode with Spotify and return a token response
+	AuthorizeByCode(code string) (*SpotifyTokenResponse, error)
+	// CreatePlaylist makes a new playlist for the authed user and returns it's ID
+	CreatePlaylist(token *SpotifyToken, name string) (string, error)
 }

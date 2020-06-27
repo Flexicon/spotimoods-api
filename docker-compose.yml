@@ -9,8 +9,8 @@ services:
     ports:
       - 3306:3306
 
-  nats:
-    image: nats:latest
+  rabbitmq:
+    image: rabbitmq:3-management
     ports:
-      - 4222:4222
-      - 8222:8222
+      - 5672:5672
+      - 15672:15672

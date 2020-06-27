@@ -19,13 +19,15 @@ type RepositoryProvider interface {
 type ServiceProvider struct {
 	repos   RepositoryProvider
 	spotify SpotifyClient
+	queue   QueueService
 }
 
 // NewServiceProvider constructor
-func NewServiceProvider(repos RepositoryProvider, spotify SpotifyClient) *ServiceProvider {
+func NewServiceProvider(repos RepositoryProvider, spotify SpotifyClient, qs QueueService) *ServiceProvider {
 	return &ServiceProvider{
 		repos:   repos,
 		spotify: spotify,
+		queue:   qs,
 	}
 }
 
@@ -41,5 +43,10 @@ func (p *ServiceProvider) Spotify() SpotifyClient {
 
 // Mood returns a new Mood service
 func (p *ServiceProvider) Mood() *MoodService {
-	return NewMoodService(p.repos.Mood())
+	return NewMoodService(p.repos.Mood(), p.Queue())
+}
+
+// Queue returns the Queue service instance
+func (p *ServiceProvider) Queue() QueueService {
+	return p.queue
 }

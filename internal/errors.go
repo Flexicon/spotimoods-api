@@ -2,7 +2,8 @@ package internal
 
 import "errors"
 
+// Generic application errors
 var (
-	// ErrNotFound signals that a resource wasn't found
-	ErrNotFound = errors.New("not found")
+	ErrNotFound     = errors.New("not found")
+	ErrTokenExpired = errors.New("token expired")
 )

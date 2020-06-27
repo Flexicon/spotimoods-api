@@ -35,12 +35,14 @@ type MoodRepository interface {
 // MoodService for performing all operations related to moods
 type MoodService struct {
 	r MoodRepository
+	q QueueService
 }
 
 // NewMoodService constructor
-func NewMoodService(r MoodRepository) *MoodService {
+func NewMoodService(r MoodRepository, q QueueService) *MoodService {
 	return &MoodService{
 		r: r,
+		q: q,
 	}
 }
 
@@ -51,9 +53,16 @@ func (s *MoodService) AddMood(name, color string, user *User) (*Mood, error) {
 		Color: color,
 		User:  *user,
 	}
-	// TODO: Either create a playlist or kickoff a background worker to do it
+	if err := s.r.Save(mood); err != nil {
+		return nil, err
+	}
 
-	return mood, s.r.Save(mood)
+	// Add task to create playlist in spotify
+	if err := s.q.AddPlaylist(mood); err != nil {
+		return nil, err
+	}
+
+	return mood, nil
 }
 
 // UpdateMoodForUser for a given change set
@@ -66,7 +75,11 @@ func (s *MoodService) UpdateMoodForUser(id uint, changes Mood, user *User) (*Moo
 	if err := s.r.Update(mood, changes); err != nil {
 		return nil, err
 	}
-	// TODO: Either update the playlist name or kickoff a background worker to do it
+
+	// Add task to update playlist in spotify
+	if err := s.q.UpdatePlaylist(mood); err != nil {
+		return nil, err
+	}
 
 	return mood, nil
 }
@@ -87,11 +100,18 @@ func (s *MoodService) FindForUser(id uint, user *User) (*Mood, error) {
 
 // DeleteForUser removes the stored mood by the given ID and user
 func (s *MoodService) DeleteForUser(id uint, user *User) error {
-	_, err := s.FindForUser(id, user)
+	mood, err := s.FindForUser(id, user)
 	if err != nil {
 		return err
 	}
-	// TODO: Either delete the related playlist or kickoff a background worker to do it
 
-	return s.r.Remove(id)
+	if err := s.r.Remove(id); err != nil {
+		return err
+	}
+
+	// Add task to delete playlist in spotify
+	if err := s.q.DeletePlaylist(user.ID, mood.PlaylistID); err != nil {
+		return err
+	}
+	return nil
 }
