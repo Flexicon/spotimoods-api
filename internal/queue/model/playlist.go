@@ -2,14 +2,16 @@ package model
 
 // AddPlaylistPayload for queue messages
 type AddPlaylistPayload struct {
-	MoodID uint `json:"mood_id"`
+	UserID uint   `json:"user_ID"`
+	MoodID uint   `json:"mood_id"`
+	Name   string `json:"name"`
 }
 
 // UpdatePlaylistPayload for queue messages
 type UpdatePlaylistPayload struct {
-	MoodID uint   `json:"mood_id"`
-	Name   string `json:"name"`
-	Color  string `json:"color"`
+	UserID     uint   `json:"user_ID"`
+	PlaylistID string `json:"playlist_id"`
+	Name       string `json:"name"`
 }
 
 // DeletePlaylistPayload for queue messages

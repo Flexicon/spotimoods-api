@@ -21,10 +21,10 @@ func (r *UserRepository) FindByEmail(email string) (*internal.User, error) {
 	return &user, query.Error
 }
 
-// FindTokenByUser attempts to retrieve a SpotifyToken for the given user
-func (r *UserRepository) FindTokenByUser(user *internal.User) (*internal.SpotifyToken, error) {
+// FindTokenByUser attempts to retrieve a SpotifyToken for the given user ID
+func (r *UserRepository) FindTokenByUser(userID uint) (*internal.SpotifyToken, error) {
 	var token internal.SpotifyToken
-	query := r.db.Preload("User").Where("user_id = ?", user.ID).First(&token)
+	query := r.db.Preload("User").Where("user_id = ?", userID).First(&token)
 	if query.RecordNotFound() {
 		return nil, internal.ErrNotFound
 	}

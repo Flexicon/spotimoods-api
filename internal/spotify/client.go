@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 
@@ -108,20 +109,58 @@ func (c *Client) Authorize(grant, grantName, grantType string) (*internal.Spotif
 
 // CreatePlaylist makes a new playlist for the authed user and returns it's ID
 func (c *Client) CreatePlaylist(token *internal.SpotifyToken, name string) (string, error) {
-	req, _ := http.NewRequest(http.MethodGet, "https://api.spotify.com/v1/users/1172023744/playlists", nil)
+	payload, err := json.Marshal(PlaylistPayload{Name: name})
+	if err != nil {
+		return "", fmt.Errorf("failed to prepare payload: %v", err)
+	}
+
+	url := fmt.Sprintf("https://api.spotify.com/v1/users/%s/playlists", token.User.SpotifyID)
+	req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(payload))
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.do(req, token)
 	if err != nil {
-		return "", fmt.Errorf("Error fetching user info: %v", err)
+		return "", fmt.Errorf("request failed when creating playlist: %v", err)
 	}
-	defer resp.Body.Close()
 
 	var playlist internal.CreatePlaylistResponse
 	if err := json.NewDecoder(resp.Body).Decode(&playlist); err != nil {
 		return "", fmt.Errorf("Error parsing playlist response: %v", err)
 	}
+	if playlist.ID == "" {
+		return "", fmt.Errorf("failed to create playlist id empty")
+	}
 
 	return playlist.ID, nil
+}
+
+// UpdatePlaylist edits an existing playlist for the authed user
+func (c *Client) UpdatePlaylist(token *internal.SpotifyToken, id, name string) error {
+	payload, err := json.Marshal(PlaylistPayload{Name: name})
+	if err != nil {
+		return fmt.Errorf("failed to prepare payload: %v", err)
+	}
+
+	url := fmt.Sprintf("https://api.spotify.com/v1/playlists/%s", id)
+	req, _ := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(payload))
+	req.Header.Set("Content-Type", "application/json")
+
+	if _, err := c.do(req, token); err != nil {
+		return fmt.Errorf("request failed when updating playlist: %v", err)
+	}
+
+	return nil
+}
+
+// DeletePlaylist really unfollows a given playlist ID, since spotify doesn't actually offer any way to delete a playlist
+func (c *Client) DeletePlaylist(token *internal.SpotifyToken, id string) error {
+	req, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("https://api.spotify.com/v1/playlists/%s/followers", id), nil)
+
+	if _, err := c.do(req, token); err != nil {
+		return fmt.Errorf("request failed when deleting playlist: %v", err)
+	}
+
+	return nil
 }
 
 // Refresh the given token with spotify
@@ -150,12 +189,16 @@ func (c *Client) do(req *http.Request, token *internal.SpotifyToken) (*http.Resp
 	if err != nil {
 		return nil, err
 	}
+	logBodyAndRewind(resp)
+
 	if resp.StatusCode != http.StatusUnauthorized || token.Refresh == "" {
 		if resp.StatusCode >= 400 {
+			resp.Body.Close()
 			return nil, httpStatusErr(resp)
 		}
 		return resp, nil
 	}
+	resp.Body.Close()
 
 	if err := c.Refresh(token); err != nil {
 		return nil, err
@@ -166,7 +209,10 @@ func (c *Client) do(req *http.Request, token *internal.SpotifyToken) (*http.Resp
 	if err != nil {
 		return nil, err
 	}
+	logBodyAndRewind(resp)
+
 	if resp.StatusCode >= 400 {
+		resp.Body.Close()
 		return nil, httpStatusErr(resp)
 	}
 
@@ -176,4 +222,17 @@ func (c *Client) do(req *http.Request, token *internal.SpotifyToken) (*http.Resp
 func httpStatusErr(resp *http.Response) error {
 	body, _ := ioutil.ReadAll(resp.Body)
 	return fmt.Errorf("Http status %d: %s", resp.StatusCode, body)
+}
+
+func logBodyAndRewind(resp *http.Response) error {
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read response body: %v", err)
+	}
+	resp.Body.Close()
+	log.Printf("HTTP Response body: %s", body)
+
+	resp.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+	return nil
 }

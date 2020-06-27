@@ -17,8 +17,8 @@ type User struct {
 type UserRepository interface {
 	// FindByEmail checks for an existing active user by a given email
 	FindByEmail(email string) (*User, error)
-	// FindTokenByUser attempts to retrieve a SpotifyToken for the given user
-	FindTokenByUser(user *User) (*SpotifyToken, error)
+	// FindTokenByUser attempts to retrieve a SpotifyToken for the given user ID
+	FindTokenByUser(userID uint) (*SpotifyToken, error)
 	// Save upserts the given user into the DB
 	Save(user *User) error
 	// SaveTokenForUser persists a new token or updets it for a given user
@@ -66,6 +66,6 @@ func (s *UserService) UpsertUser(id, name, email, image, token, refresh string) 
 }
 
 // FindTokenForUser finds a stored spotify OAuth token for the given user
-func (s *UserService) FindTokenForUser(user *User) (*SpotifyToken, error) {
-	return s.r.FindTokenByUser(user)
+func (s *UserService) FindTokenForUser(userID uint) (*SpotifyToken, error) {
+	return s.r.FindTokenByUser(userID)
 }

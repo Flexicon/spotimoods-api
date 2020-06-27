@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -14,6 +15,17 @@ type Mood struct {
 	PlaylistID string    `json:"playlist_id"`
 	UserID     uint      `json:"-"`
 	User       User      `json:"-"`
+}
+
+// MarshalJSON for api responses
+func (m *Mood) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Mood
+		HasPlaylist bool `json:"has_playlist"`
+	}{
+		*m,
+		m.PlaylistID != "",
+	})
 }
 
 // MoodRepository for interacting with mood data
@@ -34,15 +46,17 @@ type MoodRepository interface {
 
 // MoodService for performing all operations related to moods
 type MoodService struct {
-	r MoodRepository
-	q QueueService
+	r       MoodRepository
+	q       QueueService
+	spotify SpotifyClient
 }
 
 // NewMoodService constructor
-func NewMoodService(r MoodRepository, q QueueService) *MoodService {
+func NewMoodService(r MoodRepository, q QueueService, s SpotifyClient) *MoodService {
 	return &MoodService{
-		r: r,
-		q: q,
+		r:       r,
+		q:       q,
+		spotify: s,
 	}
 }
 
@@ -98,6 +112,15 @@ func (s *MoodService) FindForUser(id uint, user *User) (*Mood, error) {
 	return mood, nil
 }
 
+// Find finds a mood by the given ID
+func (s *MoodService) Find(id uint) (*Mood, error) {
+	mood, err := s.r.Find(id)
+	if err != nil {
+		return nil, err
+	}
+	return mood, nil
+}
+
 // DeleteForUser removes the stored mood by the given ID and user
 func (s *MoodService) DeleteForUser(id uint, user *User) error {
 	mood, err := s.FindForUser(id, user)
@@ -114,4 +137,21 @@ func (s *MoodService) DeleteForUser(id uint, user *User) error {
 		return err
 	}
 	return nil
+}
+
+// CreatePlaylistForMood adds a new playlist in spotify for the given mood id
+func (s *MoodService) CreatePlaylistForMood(name string, moodID uint, token *SpotifyToken) error {
+	mood, err := s.Find(moodID)
+	if err != nil {
+		return err
+	}
+
+	id, err := s.spotify.CreatePlaylist(token, name)
+	if err != nil {
+		return err
+	}
+
+	mood.PlaylistID = id
+
+	return s.r.Save(mood)
 }

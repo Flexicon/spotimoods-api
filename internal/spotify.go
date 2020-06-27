@@ -60,4 +60,8 @@ type SpotifyClient interface {
 	AuthorizeByCode(code string) (*SpotifyTokenResponse, error)
 	// CreatePlaylist makes a new playlist for the authed user and returns it's ID
 	CreatePlaylist(token *SpotifyToken, name string) (string, error)
+	// UpdatePlaylist edits an existing playlist for the authed user
+	UpdatePlaylist(token *SpotifyToken, id, name string) error
+	// DeletePlaylist for the authed user
+	DeletePlaylist(token *SpotifyToken, id string) error
 }

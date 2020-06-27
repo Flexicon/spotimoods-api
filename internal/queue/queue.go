@@ -135,6 +135,7 @@ func Listen(s *Service, h *Handler) error {
 func handleMessages(msgs <-chan amqp.Delivery, handler func(d amqp.Delivery) error) {
 	for d := range msgs {
 		if err := handler(d); err != nil {
+			log.Printf("message rejected: %v", err)
 			if err := d.Reject(false); err != nil {
 				log.Printf("failed to reject message: %v", err)
 			}

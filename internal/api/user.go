@@ -28,7 +28,7 @@ func (h *userController) Routes(g *echo.Group) {
 func (h *userController) Me() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user := c.Get("user").(*internal.User)
-		token, err := h.services.User().FindTokenForUser(user)
+		token, err := h.services.User().FindTokenForUser(user.ID)
 		if err != nil {
 			log.Printf("Couldn't find token for the current user (ID: %d): %v", user.ID, err)
 			return c.JSON(http.StatusInternalServerError, ErrResponse{Msg: "Couldn't find token for the current user"})

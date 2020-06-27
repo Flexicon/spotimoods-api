@@ -17,7 +17,11 @@ func (s *Service) Ping(msg string) error {
 
 // AddPlaylist publishes a new message to the add_playlist queue
 func (s *Service) AddPlaylist(mood *internal.Mood) error {
-	payload := model.AddPlaylistPayload{MoodID: mood.ID}
+	payload := model.AddPlaylistPayload{
+		UserID: mood.UserID,
+		MoodID: mood.ID,
+		Name:   mood.Name,
+	}
 
 	if err := s.publishJSON(addPlaylistQueue, payload); err != nil {
 		return err
@@ -28,9 +32,9 @@ func (s *Service) AddPlaylist(mood *internal.Mood) error {
 // UpdatePlaylist publishes a new message to the update_playlist queue
 func (s *Service) UpdatePlaylist(mood *internal.Mood) error {
 	payload := model.UpdatePlaylistPayload{
-		MoodID: mood.ID,
-		Name:   mood.Name,
-		Color:  mood.Color,
+		UserID:     mood.UserID,
+		PlaylistID: mood.PlaylistID,
+		Name:       mood.Name,
 	}
 
 	if err := s.publishJSON(updatePlaylistQueue, payload); err != nil {

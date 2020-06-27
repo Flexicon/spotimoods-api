@@ -43,7 +43,7 @@ func (p *ServiceProvider) Spotify() SpotifyClient {
 
 // Mood returns a new Mood service
 func (p *ServiceProvider) Mood() *MoodService {
-	return NewMoodService(p.repos.Mood(), p.Queue())
+	return NewMoodService(p.repos.Mood(), p.Queue(), p.Spotify())
 }
 
 // Queue returns the Queue service instance
