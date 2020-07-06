@@ -5,10 +5,7 @@ domains:
   front: http://localhost:8080
 
 db:
-  host: localhost
-  database: spotimoods
-  user: root
-  pass: dev
+  uri: "root:dev@(localhost)/spotimoods?charset=utf8&parseTime=True&loc=Local"
   verbose: true
 
 rabbit:
