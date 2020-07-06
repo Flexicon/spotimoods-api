@@ -17,6 +17,8 @@ import (
 )
 
 func main() {
+	config.ViperInit()
+
 	e := echo.New()
 
 	d := db.NewDB()
@@ -50,10 +52,5 @@ func main() {
 	}()
 
 	// Start up web server
-	port := viper.GetInt("web.port")
-	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", port)))
-}
-
-func init() {
-	config.ViperInit()
+	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", viper.GetInt("port"))))
 }

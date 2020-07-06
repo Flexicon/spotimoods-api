@@ -17,7 +17,7 @@ func ViperInit() {
 	viper.SetEnvPrefix("APP")
 	viper.AutomaticEnv()
 	// Defaults
-	viper.SetDefault("web.port", 80)
+	viper.SetDefault("port", 80)
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
