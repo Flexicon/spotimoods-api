@@ -7,7 +7,6 @@ require (
 	github.com/go-playground/validator/v10 v10.3.0
 	github.com/jinzhu/gorm v1.9.12
 	github.com/labstack/echo/v4 v4.1.16
-	github.com/pkg/errors v0.8.1
 	github.com/spf13/viper v1.7.0
 	github.com/streadway/amqp v1.0.0
 )
