@@ -41,7 +41,7 @@ func autoMigrate(d *gorm.DB) {
 
 func newConfig() *config {
 	return &config{
-		connectionURI: viper.GetString("db.uri"),
-		verbose:       viper.GetBool("db.verbose"),
+		connectionURI: viper.GetString("database.url"),
+		verbose:       viper.GetBool("database.verbose"),
 	}
 }

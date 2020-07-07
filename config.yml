@@ -4,8 +4,8 @@ domains:
   api: http://localhost:9000
   front: http://localhost:8080
 
-db:
-  uri: "root:dev@(localhost)/spotimoods?charset=utf8&parseTime=True&loc=Local"
+database:
+  url: "root:dev@(localhost)/spotimoods?charset=utf8&parseTime=True&loc=Local"
   verbose: true
 
 rabbit:
