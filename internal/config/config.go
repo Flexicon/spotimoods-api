@@ -14,7 +14,6 @@ func ViperInit() {
 	viper.AddConfigPath(".")
 	// Prepare for Environment variables
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	viper.SetEnvPrefix("APP")
 	viper.AutomaticEnv()
 	// Defaults
 	viper.SetDefault("port", 80)
