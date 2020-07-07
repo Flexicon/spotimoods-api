@@ -33,6 +33,7 @@ func InitRoutes(e *echo.Echo, opts Options) {
 	}))
 
 	base := e.Group("")
+	newHome().Routes(base)
 	newLogin(opts.Services).Routes(base)
 
 	api := e.Group("/api")
