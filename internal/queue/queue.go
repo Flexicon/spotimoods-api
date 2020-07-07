@@ -25,7 +25,7 @@ type Service struct {
 
 // Setup declares the necessary queue topology and returns a new queue service
 func Setup() (*Service, error) {
-	conn, err := amqp.Dial(viper.GetString("rabbit.uri"))
+	conn, err := amqp.Dial(viper.GetString("rabbitmq.url"))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to connect to RabbitMQ: %v", err)
 	}

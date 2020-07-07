@@ -8,8 +8,8 @@ database:
   url: "root:dev@(localhost)/spotimoods?charset=utf8&parseTime=True&loc=Local"
   verbose: true
 
-rabbit:
-  uri: "amqp://guest:guest@localhost:5672/"
+rabbitmq:
+  url: "amqp://guest:guest@localhost:5672/"
 
 spotify:
   client_id: ""
