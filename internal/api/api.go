@@ -29,7 +29,7 @@ func InitRoutes(e *echo.Echo, opts Options) {
 	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{DisableStackAll: true}))
 	e.Use(middleware.Secure())
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format: "${time_rfc3339} REQUEST: method=${method}, status=${status}, uri=${uri}, latency=${latency_human}\n",
+		Format: "REQUEST: method=${method}, status=${status}, uri=${uri}, latency=${latency_human}\n",
 	}))
 
 	base := e.Group("")
