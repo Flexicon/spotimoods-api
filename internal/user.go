@@ -9,7 +9,7 @@ type User struct {
 	gorm.Model
 	Email       string `gorm:"unique;not null"`
 	DisplayName string
-	Image       string
+	Image       string `gorm:"size:500"`
 	SpotifyID   string `gorm:"not null"`
 }
 
