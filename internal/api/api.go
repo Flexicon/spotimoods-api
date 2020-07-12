@@ -35,11 +35,9 @@ func InitRoutes(e *echo.Echo, opts Options) {
 	base := e.Group("")
 	newHome().Routes(base)
 	newLogin(opts.Services).Routes(base)
-
-	api := e.Group("/api")
-	newPing().Routes(api)
-	newUser(opts.Services).Routes(api)
-	newMood(opts.Services).Routes(api)
+	newPing().Routes(base)
+	newUser(opts.Services).Routes(base)
+	newMood(opts.Services).Routes(base)
 }
 
 func notFound(c echo.Context, resource string) error {
