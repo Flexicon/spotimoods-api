@@ -2,7 +2,7 @@ port: 9000
 
 domains:
   api: http://localhost:9000
-  front: http://localhost:8080
+  front: http://localhost:3000
 
 database:
   url: "root:dev@(localhost)/spotimoods?charset=utf8&parseTime=True&loc=Local"
