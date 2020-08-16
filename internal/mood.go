@@ -132,9 +132,9 @@ func (s *MoodService) DeleteForUser(id uint, user *User) error {
 		return err
 	}
 
-	// Add task to delete playlist in spotify
-	if err := s.q.DeletePlaylist(user.ID, mood.PlaylistID); err != nil {
-		return err
+	// Add task to delete playlist in spotify if mood has playlist
+	if mood.PlaylistID != "" {
+		return s.q.DeletePlaylist(user.ID, mood.PlaylistID)
 	}
 	return nil
 }
