@@ -43,7 +43,7 @@ func main() {
 	// Setup web server if not running as a background worker
 	if !viper.GetBool("worker") {
 		e := echo.New()
-		api.InitRoutes(echo.New(), api.Options{
+		api.InitRoutes(e, api.Options{
 			Services: services,
 		})
 
