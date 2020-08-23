@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/flexicon/spotimoods-go/internal"
@@ -19,8 +22,6 @@ import (
 func main() {
 	config.ViperInit()
 
-	e := echo.New()
-
 	d := db.NewDB()
 	h := &http.Client{Timeout: 5 * time.Second}
 
@@ -35,22 +36,33 @@ func main() {
 	// Setup main service provider
 	services := internal.NewServiceProvider(repos, spot, qs)
 
-	// Setup API and queue consumers
-	api.InitRoutes(e, api.Options{
-		Services: services,
-	})
-	go func() {
-		qh := queue.NewHandler(services)
-		log.Fatalln(queue.Listen(qs, qh))
-	}()
+	// Queue consumers and test queue connection with a ping message
+	go setupQueueListener(services)
+	go pingQueue(qs)
 
-	// Test queue connection with a ping message
-	go func() {
-		if err := qs.Ping("ping"); err != nil {
-			log.Fatal(err)
-		}
-	}()
+	// Setup web server if not running as a background worker
+	if !viper.GetBool("worker") {
+		e := echo.New()
+		api.InitRoutes(echo.New(), api.Options{
+			Services: services,
+		})
 
-	// Start up web server
-	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", viper.GetInt("port"))))
+		e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", viper.GetInt("port"))))
+	}
+
+	// Run worker until system interrupt signal is received
+	sigs := make(chan os.Signal)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	<-sigs
+}
+
+func setupQueueListener(services *internal.ServiceProvider) {
+	qh := queue.NewHandler(services)
+	log.Fatalln(queue.Listen(services.Queue().(*queue.Service), qh))
+}
+
+func pingQueue(qs *queue.Service) {
+	if err := qs.Ping("ping"); err != nil {
+		log.Fatal(err)
+	}
 }
