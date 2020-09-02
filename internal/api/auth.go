@@ -51,7 +51,11 @@ func authUser(opts Options) echo.MiddlewareFunc {
 			if user == nil {
 				return c.JSON(http.StatusUnauthorized, response{Msg: "unauthorized"})
 			}
+
 			c.Set("user", user)
+			if spotifyToken, err := opts.Services.User().FindTokenForUser(user.ID); err == nil {
+				c.Set("user.spotify_token", spotifyToken)
+			}
 
 			return next(c)
 		}
