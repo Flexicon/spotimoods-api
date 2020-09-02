@@ -27,13 +27,7 @@ func (h *userController) Routes(g *echo.Group) {
 
 func (h *userController) Me() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user := c.Get("user").(*internal.User)
-		token, err := h.services.User().FindTokenForUser(user.ID)
-		if err != nil {
-			log.Printf("Couldn't find token for the current user (ID: %d): %v", user.ID, err)
-			return c.JSON(http.StatusInternalServerError, ErrResponse{Msg: "Couldn't find token for the current user"})
-		}
-
+		token := c.Get("user.spotify_token").(*internal.SpotifyToken)
 		profile, err := h.services.Spotify().GetMyProfile(token)
 		if err != nil {
 			log.Println("Failed to retrieve user profile:", err)

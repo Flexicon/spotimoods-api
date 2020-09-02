@@ -38,6 +38,7 @@ func InitRoutes(e *echo.Echo, opts Options) {
 	newPing().Routes(base)
 	newUser(opts.Services).Routes(base)
 	newMood(opts.Services).Routes(base)
+	newSpotify(opts.Services).Routes(base)
 }
 
 func notFound(c echo.Context, resource string) error {

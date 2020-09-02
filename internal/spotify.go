@@ -42,6 +42,24 @@ type SpotifyTokenResponse struct {
 	ErrorDescription string `json:"error_description"`
 }
 
+// SpotifyArtist response structure
+//
+// Docs: https://developer.spotify.com/documentation/web-api/reference/artists/
+type SpotifyArtist struct {
+	ID     string         `json:"id"`
+	Name   string         `json:"name"`
+	Link   string         `json:"href"`
+	Images []SpotifyImage `json:"images"`
+	Genres []string       `json:"genres"`
+}
+
+// SpotifyImage structure
+type SpotifyImage struct {
+	Height int    `json:"height"`
+	Width  int    `json:"width"`
+	URL    string `json:"url"`
+}
+
 // CreatePlaylistResponse from the spotify API
 //
 // Docs: https://developer.spotify.com/documentation/web-api/reference/playlists/create-playlist/
@@ -64,4 +82,6 @@ type SpotifyClient interface {
 	UpdatePlaylist(token *SpotifyToken, id, name string) error
 	// DeletePlaylist for the authed user
 	DeletePlaylist(token *SpotifyToken, id string) error
+	// SearchForArtists by the given query
+	SearchForArtists(token *SpotifyToken, query string) ([]*SpotifyArtist, error)
 }

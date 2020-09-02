@@ -115,7 +115,10 @@ func (c *Client) CreatePlaylist(token *internal.SpotifyToken, name string) (stri
 	}
 
 	url := fmt.Sprintf("https://api.spotify.com/v1/users/%s/playlists", token.User.SpotifyID)
-	req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(payload))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(payload))
+	if err != nil {
+		return "", fmt.Errorf("failed to prepare request: %v", err)
+	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.do(req, token)
@@ -142,7 +145,10 @@ func (c *Client) UpdatePlaylist(token *internal.SpotifyToken, id, name string) e
 	}
 
 	url := fmt.Sprintf("https://api.spotify.com/v1/playlists/%s", id)
-	req, _ := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(payload))
+	req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(payload))
+	if err != nil {
+		return fmt.Errorf("failed to prepare request: %v", err)
+	}
 	req.Header.Set("Content-Type", "application/json")
 
 	if _, err := c.do(req, token); err != nil {
@@ -161,6 +167,29 @@ func (c *Client) DeletePlaylist(token *internal.SpotifyToken, id string) error {
 	}
 
 	return nil
+}
+
+// SearchForArtists by the given query
+func (c *Client) SearchForArtists(token *internal.SpotifyToken, query string) ([]*internal.SpotifyArtist, error) {
+	searchURL := fmt.Sprintf("https://api.spotify.com/v1/search?q=%s&type=artist", query)
+	req, _ := http.NewRequest(http.MethodGet, searchURL, nil)
+
+	resp, err := c.do(req, token)
+	if err != nil {
+		return nil, fmt.Errorf("request failed when searching artists: %v", err)
+	}
+	defer resp.Body.Close()
+
+	var searchResponse struct {
+		Artists struct {
+			Items []*internal.SpotifyArtist `json:"items"`
+		} `json:"artists"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&searchResponse); err != nil {
+		return nil, fmt.Errorf("error parsing artists response: %v", err)
+	}
+
+	return searchResponse.Artists.Items, nil
 }
 
 // Refresh the given token with spotify
