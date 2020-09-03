@@ -24,6 +24,7 @@ func (h *spotifyController) Routes(g *echo.Group) {
 	useAuthMiddleware(artists, Options{Services: h.services})
 
 	artists.GET("/search", h.ArtistsSearch())
+	artists.GET("/top", h.TopArtists())
 }
 
 func (h *spotifyController) ArtistsSearch() echo.HandlerFunc {
@@ -37,6 +38,21 @@ func (h *spotifyController) ArtistsSearch() echo.HandlerFunc {
 		artists, err := h.services.Spotify().SearchForArtists(token, q)
 		if err != nil {
 			errMsg := fmt.Sprintf("failed to search for artists: %v", err)
+			log.Printf(errMsg)
+			return c.JSON(http.StatusInternalServerError, ErrResponse{Msg: errMsg})
+		}
+
+		return c.JSON(http.StatusOK, artists)
+	}
+}
+
+func (h *spotifyController) TopArtists() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		token := c.Get("user.spotify_token").(*internal.SpotifyToken)
+
+		artists, err := h.services.Spotify().GetTopArtists(token)
+		if err != nil {
+			errMsg := fmt.Sprintf("failed to get top artists: %v", err)
 			log.Printf(errMsg)
 			return c.JSON(http.StatusInternalServerError, ErrResponse{Msg: errMsg})
 		}

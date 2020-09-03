@@ -84,4 +84,6 @@ type SpotifyClient interface {
 	DeletePlaylist(token *SpotifyToken, id string) error
 	// SearchForArtists by the given query
 	SearchForArtists(token *SpotifyToken, query string) ([]*SpotifyArtist, error)
+	// GetTopArtists for the user
+	GetTopArtists(token *SpotifyToken) ([]*SpotifyArtist, error)
 }

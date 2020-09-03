@@ -192,6 +192,26 @@ func (c *Client) SearchForArtists(token *internal.SpotifyToken, query string) ([
 	return searchResponse.Artists.Items, nil
 }
 
+// GetTopArtists for the user
+func (c *Client) GetTopArtists(token *internal.SpotifyToken) ([]*internal.SpotifyArtist, error) {
+	req, _ := http.NewRequest(http.MethodGet, "https://api.spotify.com/v1/me/top/artists", nil)
+
+	resp, err := c.do(req, token)
+	if err != nil {
+		return nil, fmt.Errorf("request failed when getting top artists: %v", err)
+	}
+	defer resp.Body.Close()
+
+	var topResponse struct {
+		Items []*internal.SpotifyArtist `json:"items"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&topResponse); err != nil {
+		return nil, fmt.Errorf("error parsing top artists response: %v", err)
+	}
+
+	return topResponse.Items, nil
+}
+
 // Refresh the given token with spotify
 func (c *Client) Refresh(token *internal.SpotifyToken) error {
 	st, err := c.Authorize(token.Refresh, "refresh_token", "refresh_token")
