@@ -46,11 +46,14 @@ type SpotifyTokenResponse struct {
 //
 // Docs: https://developer.spotify.com/documentation/web-api/reference/artists/
 type SpotifyArtist struct {
-	ID     string         `json:"id"`
-	Name   string         `json:"name"`
-	Link   string         `json:"href"`
-	Images []SpotifyImage `json:"images"`
-	Genres []string       `json:"genres"`
+	ID           string         `json:"id"`
+	Name         string         `json:"name"`
+	Link         string         `json:"href"`
+	Images       []SpotifyImage `json:"images"`
+	Genres       []string       `json:"genres"`
+	ExternalURLs struct {
+		Spotify string `json:"spotify"`
+	} `json:"external_urls"`
 }
 
 // SpotifyImage structure
