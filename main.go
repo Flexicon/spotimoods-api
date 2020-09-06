@@ -11,6 +11,7 @@ import (
 
 	"github.com/flexicon/spotimoods-go/internal"
 	"github.com/flexicon/spotimoods-go/internal/api"
+	"github.com/flexicon/spotimoods-go/internal/cache"
 	"github.com/flexicon/spotimoods-go/internal/config"
 	"github.com/flexicon/spotimoods-go/internal/db"
 	"github.com/flexicon/spotimoods-go/internal/queue"
@@ -27,14 +28,18 @@ func main() {
 
 	// Init all app services
 	repos := db.NewRepositoryProvider(d)
-	spot := spotify.NewClient(h, repos)
 	qs, err := queue.Setup()
 	if err != nil {
 		log.Fatalln(err)
 	}
+	cs, err := cache.NewCache()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	spot := spotify.NewClient(h, repos, cs)
 
 	// Setup main service provider
-	services := internal.NewServiceProvider(repos, spot, qs)
+	services := internal.NewServiceProvider(repos, spot, qs, cs)
 
 	// Queue consumers and test queue connection with a ping message
 	go setupQueueListener(services)

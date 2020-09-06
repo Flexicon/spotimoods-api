@@ -20,14 +20,16 @@ type ServiceProvider struct {
 	repos   RepositoryProvider
 	spotify SpotifyClient
 	queue   QueueService
+	cache   Cache
 }
 
 // NewServiceProvider constructor
-func NewServiceProvider(repos RepositoryProvider, spotify SpotifyClient, qs QueueService) *ServiceProvider {
+func NewServiceProvider(repos RepositoryProvider, spotify SpotifyClient, qs QueueService, c Cache) *ServiceProvider {
 	return &ServiceProvider{
 		repos:   repos,
 		spotify: spotify,
 		queue:   qs,
+		cache:   c,
 	}
 }
 
@@ -49,4 +51,9 @@ func (p *ServiceProvider) Mood() *MoodService {
 // Queue returns the Queue service instance
 func (p *ServiceProvider) Queue() QueueService {
 	return p.queue
+}
+
+// Cache returns the Cache service instance
+func (p *ServiceProvider) Cache() Cache {
+	return p.cache
 }

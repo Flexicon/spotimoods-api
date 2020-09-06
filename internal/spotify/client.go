@@ -18,13 +18,15 @@ import (
 type Client struct {
 	http  internal.HTTPClient
 	repos internal.RepositoryProvider
+	cache internal.Cache
 }
 
 // NewClient constructor
-func NewClient(h internal.HTTPClient, repos internal.RepositoryProvider) *Client {
+func NewClient(h internal.HTTPClient, repos internal.RepositoryProvider, cache internal.Cache) *Client {
 	return &Client{
 		http:  h,
 		repos: repos,
+		cache: cache,
 	}
 }
 
@@ -194,13 +196,13 @@ func (c *Client) SearchForArtists(token *internal.SpotifyToken, query string) ([
 
 // GetTopArtists for the user
 func (c *Client) GetTopArtists(token *internal.SpotifyToken) ([]*internal.SpotifyArtist, error) {
-	req, _ := http.NewRequest(http.MethodGet, "https://api.spotify.com/v1/me/top/artists", nil)
+			req, _ := http.NewRequest(http.MethodGet, "https://api.spotify.com/v1/me/top/artists", nil)
 
-	resp, err := c.do(req, token)
-	if err != nil {
-		return nil, fmt.Errorf("request failed when getting top artists: %v", err)
-	}
-	defer resp.Body.Close()
+			resp, err := c.do(req, token)
+			if err != nil {
+				return nil, fmt.Errorf("request failed when getting top artists: %v", err)
+			}
+			defer resp.Body.Close()
 
 	var topResponse struct {
 		Items []*internal.SpotifyArtist `json:"items"`
