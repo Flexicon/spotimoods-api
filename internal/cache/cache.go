@@ -18,9 +18,14 @@ type adapter struct {
 
 // NewCache builder
 func NewCache() (internal.Cache, error) {
-	r := redis.NewClient(&redis.Options{
-		Addr: viper.GetString("redis.url"),
-	})
+	opt, err := redis.ParseURL(viper.GetString("redis.url"))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse redis url")
+	}
+	// Remove placeholder redis username https://github.com/go-redis/redis/issues/1343
+	opt.Username = ""
+
+	r := redis.NewClient(opt)
 	// Validate redis connection by pinging it, otherwise return err
 	if err := r.Ping(context.Background()).Err(); err != nil {
 		return nil, errors.Wrap(err, "cache setup failed")

@@ -54,16 +54,18 @@ func (c *Client) GetAuthorizeURL(state string) string {
 // GetMyProfile fetches the user profile for the currently logged in user
 func (c *Client) GetMyProfile(token *internal.SpotifyToken) (*internal.SpotifyProfile, error) {
 	req, _ := http.NewRequest(http.MethodGet, "https://api.spotify.com/v1/me", nil)
-	req.Header.Set("Authorization", "Bearer "+token.Token)
-
-	resp, err := c.do(req, token)
-	if err != nil {
-		return nil, fmt.Errorf("Error fetching user info: %v", err)
+	cacheConfig := &internal.CacheItem{
+		Key: fmt.Sprintf("GetMyProfile-%d", token.UserID),
+		TTL: time.Minute,
 	}
-	defer resp.Body.Close()
+
+	body, err := c.fetchWithCache(req, token, cacheConfig)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to fetch user info")
+	}
 
 	var profile internal.SpotifyProfile
-	if err := json.NewDecoder(resp.Body).Decode(&profile); err != nil {
+	if err := json.NewDecoder(bytes.NewBuffer(body)).Decode(&profile); err != nil {
 		return nil, fmt.Errorf("Error parsing user info: %v", err)
 	}
 
