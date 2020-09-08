@@ -57,18 +57,22 @@ func (a *adapter) Once(item *internal.CacheItem) error {
 }
 
 func (a *adapter) build(item *internal.CacheItem) *cache.Item {
-	return &cache.Item{
+	i := &cache.Item{
 		Key:            item.Key,
 		Value:          item.Value,
 		TTL:            item.TTL,
 		IfExists:       item.IfExists,
 		IfNotExists:    item.IfNotExists,
 		SkipLocalCache: item.SkipLocalCache,
-
-		Do: func(doItem *cache.Item) (interface{}, error) {
-			return item.Do(a.buildInternal(doItem))
-		},
 	}
+
+	if item.Do != nil {
+		i.Do = func(doItem *cache.Item) (interface{}, error) {
+			return item.Do(a.buildInternal(doItem))
+		}
+	}
+
+	return i
 }
 
 func (a *adapter) buildInternal(item *cache.Item) *internal.CacheItem {

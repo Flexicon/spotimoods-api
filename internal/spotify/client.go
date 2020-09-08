@@ -9,8 +9,10 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/flexicon/spotimoods-go/internal"
+	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
 
@@ -173,21 +175,29 @@ func (c *Client) DeletePlaylist(token *internal.SpotifyToken, id string) error {
 
 // SearchForArtists by the given query
 func (c *Client) SearchForArtists(token *internal.SpotifyToken, query string) ([]*internal.SpotifyArtist, error) {
-	searchURL := fmt.Sprintf("https://api.spotify.com/v1/search?q=%s&type=artist", query)
-	req, _ := http.NewRequest(http.MethodGet, searchURL, nil)
+	searchURL, _ := url.Parse("https://api.spotify.com/v1/search")
+	q := url.Values{}
+	q.Add("q", query)
+	q.Add("type", "artist")
+	searchURL.RawQuery = q.Encode()
 
-	resp, err := c.do(req, token)
-	if err != nil {
-		return nil, fmt.Errorf("request failed when searching artists: %v", err)
+	req, _ := http.NewRequest(http.MethodGet, searchURL.String(), nil)
+	cacheItem := &internal.CacheItem{
+		Key: fmt.Sprintf("SearchForArtists-user-%d-%s", token.UserID, searchURL.RawQuery),
+		TTL: time.Minute,
 	}
-	defer resp.Body.Close()
+
+	body, err := c.fetchWithCache(req, token, cacheItem)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to retrieve search results")
+	}
 
 	var searchResponse struct {
 		Artists struct {
 			Items []*internal.SpotifyArtist `json:"items"`
 		} `json:"artists"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&searchResponse); err != nil {
+	if err := json.NewDecoder(bytes.NewBuffer(body)).Decode(&searchResponse); err != nil {
 		return nil, fmt.Errorf("error parsing artists response: %v", err)
 	}
 
@@ -196,18 +206,21 @@ func (c *Client) SearchForArtists(token *internal.SpotifyToken, query string) ([
 
 // GetTopArtists for the user
 func (c *Client) GetTopArtists(token *internal.SpotifyToken) ([]*internal.SpotifyArtist, error) {
-			req, _ := http.NewRequest(http.MethodGet, "https://api.spotify.com/v1/me/top/artists", nil)
+	req, _ := http.NewRequest(http.MethodGet, "https://api.spotify.com/v1/me/top/artists", nil)
+	cacheItem := &internal.CacheItem{
+		Key: fmt.Sprintf("GetTopArtists-user-%d", token.UserID),
+		TTL: time.Minute,
+	}
 
-			resp, err := c.do(req, token)
-			if err != nil {
-				return nil, fmt.Errorf("request failed when getting top artists: %v", err)
-			}
-			defer resp.Body.Close()
+	body, err := c.fetchWithCache(req, token, cacheItem)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to retrieve top artists")
+	}
 
 	var topResponse struct {
 		Items []*internal.SpotifyArtist `json:"items"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&topResponse); err != nil {
+	if err := json.NewDecoder(bytes.NewBuffer(body)).Decode(&topResponse); err != nil {
 		return nil, fmt.Errorf("error parsing top artists response: %v", err)
 	}
 
@@ -268,6 +281,40 @@ func (c *Client) do(req *http.Request, token *internal.SpotifyToken) (*http.Resp
 	}
 
 	return resp, nil
+}
+
+// fetch the given request and return the raw response body
+func (c *Client) fetch(req *http.Request, token *internal.SpotifyToken) ([]byte, error) {
+	resp, err := c.do(req, token)
+	if err != nil {
+		return nil, fmt.Errorf("request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	return ioutil.ReadAll(resp.Body)
+}
+
+// fetch the given request from cache, execute it otherwise and return the raw response body
+func (c *Client) fetchWithCache(req *http.Request, token *internal.SpotifyToken, cacheItem *internal.CacheItem) ([]byte, error) {
+	if c.cache.Exists(cacheItem.Key) {
+		var body []byte
+		if err := c.cache.Get(cacheItem.Key, &body); err != nil {
+			return nil, err
+		}
+		return body, nil
+	}
+
+	// Execute actual request
+	body, err := c.fetch(req, token)
+	if err != nil {
+		return nil, err
+	}
+
+	// Cache results
+	cacheItem.Value = &body
+	c.cache.Set(cacheItem)
+
+	return body, nil
 }
 
 func httpStatusErr(resp *http.Response) error {
