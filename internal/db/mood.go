@@ -13,7 +13,7 @@ type MoodRepository struct {
 // Find mood by ID
 func (r *MoodRepository) Find(id uint) (*internal.Mood, error) {
 	var mood internal.Mood
-	query := r.db.First(&mood, id)
+	query := r.db.Preload("Tags").First(&mood, id)
 	if query.RecordNotFound() {
 		return nil, internal.ErrNotFound
 	}
@@ -24,7 +24,7 @@ func (r *MoodRepository) Find(id uint) (*internal.Mood, error) {
 // FindByIDAndUser if it exists
 func (r *MoodRepository) FindByIDAndUser(id uint, user *internal.User) (*internal.Mood, error) {
 	var mood internal.Mood
-	query := r.db.Where("id = ? AND user_id = ?", id, user.ID).First(&mood)
+	query := r.db.Preload("Tags").Where("id = ? AND user_id = ?", id, user.ID).First(&mood)
 	if query.RecordNotFound() {
 		return nil, internal.ErrNotFound
 	}
@@ -53,7 +53,7 @@ func (r *MoodRepository) Save(mood *internal.Mood) error {
 // FindByUser all moods for a given user
 func (r *MoodRepository) FindByUser(user *internal.User) ([]*internal.Mood, error) {
 	var moods []*internal.Mood
-	err := r.db.Where("user_id = ?", user.ID).Find(&moods).Error
+	err := r.db.Preload("Tags").Where("user_id = ?", user.ID).Find(&moods).Error
 
 	return moods, err
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/flexicon/spotimoods-go/internal"
 	"github.com/flexicon/spotimoods-go/internal/api/model"
 	"github.com/labstack/echo/v4"
+	"github.com/pkg/errors"
 )
 
 type moodController struct {
@@ -71,15 +72,32 @@ func (h *moodController) Create() echo.HandlerFunc {
 
 func (h *moodController) Show() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user := c.Get("user").(*internal.User)
+		token := c.Get("user.spotify_token").(*internal.SpotifyToken)
+
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			return notFound(c, "mood")
 		}
 
-		mood, err := h.services.Mood().FindForUser(uint(id), user)
+		mood, err := h.services.Mood().FindForUser(uint(id), &token.User)
 		if err != nil {
 			return notFound(c, "mood")
+		}
+
+		// Populate artist data in mood tags
+		artistIDs := make([]string, 0)
+		for _, tag := range mood.Tags {
+			artistIDs = append(artistIDs, tag.ArtistID)
+		}
+
+		artists, err := h.services.Spotify().GetArtistsByIDs(token, artistIDs)
+		if err != nil {
+			err := errors.Wrap(err, "failed to retrieve mood artist data")
+			return c.JSON(http.StatusInternalServerError, ErrResponse{Msg: err.Error()})
+		}
+
+		for i, artist := range artists {
+			mood.Tags[i].ArtistData = *artist
 		}
 
 		return c.JSON(http.StatusOK, mood)

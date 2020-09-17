@@ -36,6 +36,7 @@ func autoMigrate(d *gorm.DB) {
 		&internal.User{},
 		&internal.SpotifyToken{},
 		&internal.Mood{},
+		&internal.Tag{},
 	)
 }
 

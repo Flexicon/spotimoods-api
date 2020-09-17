@@ -15,6 +15,7 @@ type Mood struct {
 	PlaylistID string    `json:"playlist_id"`
 	UserID     uint      `json:"-"`
 	User       User      `json:"-"`
+	Tags       []Tag     `json:"tags"`
 }
 
 // MarshalJSON for api responses
@@ -105,11 +106,7 @@ func (s *MoodService) GetMoods(user *User) ([]*Mood, error) {
 
 // FindForUser finds a mood by the given ID and user
 func (s *MoodService) FindForUser(id uint, user *User) (*Mood, error) {
-	mood, err := s.r.FindByIDAndUser(id, user)
-	if err != nil {
-		return nil, err
-	}
-	return mood, nil
+	return s.r.FindByIDAndUser(id, user)
 }
 
 // Find finds a mood by the given ID

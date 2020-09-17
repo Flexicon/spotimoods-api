@@ -89,4 +89,6 @@ type SpotifyClient interface {
 	SearchForArtists(token *SpotifyToken, query string) ([]*SpotifyArtist, error)
 	// GetTopArtists for the user
 	GetTopArtists(token *SpotifyToken) ([]*SpotifyArtist, error)
+	// GetArtistsByIDs retrieves the artists related to the given IDs
+	GetArtistsByIDs(token *SpotifyToken, ids []string) ([]*SpotifyArtist, error)
 }
