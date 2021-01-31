@@ -1,4 +1,4 @@
-package api
+package auth
 
 import (
 	"log"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/flexicon/spotimoods-go/internal"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/spf13/viper"
@@ -17,8 +18,8 @@ type TokenOptions struct {
 	Email       string
 }
 
-// generateToken prepares a new JWT based on input options
-func generateToken(opts TokenOptions) (string, error) {
+// GenerateToken prepares a new JWT based on input options
+func GenerateToken(opts TokenOptions) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["display_name"] = opts.DisplayName
@@ -28,16 +29,18 @@ func generateToken(opts TokenOptions) (string, error) {
 	return token.SignedString([]byte(viper.GetString("app.secret")))
 }
 
-func useAuthMiddleware(g *echo.Group, opts Options) {
-	g.Use(middleware.JWT([]byte(viper.GetString("app.secret"))), authUser(opts))
+// Options for auth middleware
+type Options struct {
+	Services *internal.ServiceProvider
 }
 
-// authUser middleware to verify an existing user for a token
-func authUser(opts Options) echo.MiddlewareFunc {
-	type response struct {
-		Msg string `json:"message"`
-	}
+// UseMiddleware and attach it to the given echo.Group
+func UseMiddleware(g *echo.Group, opts Options) {
+	g.Use(middleware.JWT([]byte(viper.GetString("app.secret"))), setAuthUser(opts))
+}
 
+// setAuthUser middleware to verify an existing user for a token
+func setAuthUser(opts Options) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			token := c.Get("user").(*jwt.Token)
@@ -45,11 +48,11 @@ func authUser(opts Options) echo.MiddlewareFunc {
 
 			user, err := opts.Services.User().FindByEmail(claims["email"].(string))
 			if err != nil {
-				log.Println("Failed to retrieve user by email:", err)
-				return c.JSON(http.StatusInternalServerError, response{Msg: "something went wrong"})
+				log.Println("failed to retrieve user by email:", err)
+				return echo.NewHTTPError(http.StatusInternalServerError, "failed to retrieve user by email")
 			}
 			if user == nil {
-				return c.JSON(http.StatusUnauthorized, response{Msg: "unauthorized"})
+				return echo.NewHTTPError(http.StatusUnauthorized)
 			}
 
 			c.Set("user", user)

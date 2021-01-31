@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/flexicon/spotimoods-go/internal"
+	"github.com/flexicon/spotimoods-go/internal/api/auth"
 	"github.com/flexicon/spotimoods-go/internal/api/model"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -23,7 +24,7 @@ func newMood(services *internal.ServiceProvider) Controller {
 
 func (h *moodController) Routes(g *echo.Group) {
 	g = g.Group("/moods")
-	useAuthMiddleware(g, Options{Services: h.services})
+	auth.UseMiddleware(g, auth.Options{Services: h.services})
 
 	g.GET("", h.List())
 	g.POST("", h.Create())

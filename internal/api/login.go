@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/flexicon/spotimoods-go/internal"
+	"github.com/flexicon/spotimoods-go/internal/api/auth"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
@@ -83,7 +84,7 @@ func (h *loginController) loginCallback() echo.HandlerFunc {
 		}
 
 		// Generate app JWT
-		signedToken, err := generateToken(TokenOptions{
+		signedToken, err := auth.GenerateToken(auth.TokenOptions{
 			DisplayName: profile.DisplayName,
 			Email:       profile.Email,
 		})

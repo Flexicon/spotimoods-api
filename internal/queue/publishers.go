@@ -9,10 +9,7 @@ import (
 func (s *Service) Ping(msg string) error {
 	payload := model.PingPayload{Msg: msg}
 
-	if err := s.publishJSON(pingQueue, payload); err != nil {
-		return err
-	}
-	return nil
+	return s.publishJSON(pingQueue, payload)
 }
 
 // AddPlaylist publishes a new message to the add_playlist queue
@@ -23,10 +20,7 @@ func (s *Service) AddPlaylist(mood *internal.Mood) error {
 		Name:   mood.Name,
 	}
 
-	if err := s.publishJSON(addPlaylistQueue, payload); err != nil {
-		return err
-	}
-	return nil
+	return s.publishJSON(addPlaylistQueue, payload)
 }
 
 // UpdatePlaylist publishes a new message to the update_playlist queue
@@ -37,18 +31,12 @@ func (s *Service) UpdatePlaylist(mood *internal.Mood) error {
 		Name:       mood.Name,
 	}
 
-	if err := s.publishJSON(updatePlaylistQueue, payload); err != nil {
-		return err
-	}
-	return nil
+	return s.publishJSON(updatePlaylistQueue, payload)
 }
 
 // DeletePlaylist publishes a new message to the delete_playlist queue
 func (s *Service) DeletePlaylist(userID uint, playlistID string) error {
 	payload := model.DeletePlaylistPayload{UserID: userID, PlaylistID: playlistID}
 
-	if err := s.publishJSON(deletePlaylistQueue, payload); err != nil {
-		return err
-	}
-	return nil
+	return s.publishJSON(deletePlaylistQueue, payload)
 }

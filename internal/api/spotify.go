@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/flexicon/spotimoods-go/internal"
+	"github.com/flexicon/spotimoods-go/internal/api/auth"
 	"github.com/labstack/echo/v4"
 )
 
@@ -21,7 +22,7 @@ func newSpotify(services *internal.ServiceProvider) Controller {
 
 func (h *spotifyController) Routes(g *echo.Group) {
 	artists := g.Group("/artists")
-	useAuthMiddleware(artists, Options{Services: h.services})
+	auth.UseMiddleware(artists, auth.Options{Services: h.services})
 
 	artists.GET("/search", h.ArtistsSearch())
 	artists.GET("/top", h.TopArtists())
